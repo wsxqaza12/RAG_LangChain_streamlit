@@ -1,0 +1,10 @@
+langchain
+streamlit
+# unstructured
+# unstructured[pdf]
+# openai
+# chromadb
+# tiktoken
+sentence-transformers 
+langchain-community
+langchain-openai
