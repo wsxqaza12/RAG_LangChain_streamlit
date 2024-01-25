@@ -1,5 +1,4 @@
 import os, tempfile
-import pinecone
 from pathlib import Path
 
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
@@ -17,10 +16,18 @@ TMP_DIR = Path(__file__).resolve().parent.joinpath('data', 'tmp')
 LOCAL_VECTOR_STORE_DIR = Path(__file__).resolve().parent.joinpath('data', 'vector_store')
 
 st.set_page_config(page_title="RAG")
-st.title("Retrieval Augmented Generation Engine")
-url = st.sidebar.text_input('LLM url', key="user_input")
-# if st.sidebar.button("Set Up"):
-#     process_documents()
+st.title("Streamlit Showcase: Unleashing the Power of RAG and LangChain")
+mode = st.sidebar.radio(
+    "LLM type：",
+    ('Your own LLM', 'openAI'))
+if mode == 'Your own LLM':
+    openai_api_base = st.sidebar.text_input('URL:', type='default')
+    openai_api_key = 'None'
+elif mode == 'openAI':
+    openai_api_base = st.sidebar.text_input('api_base:', type='password')
+    openai_api_key = st.sidebar.text_input('key:', type='password')
+
+
 
 def load_documents():
     loader = DirectoryLoader(TMP_DIR.as_posix(), glob='**/*.pdf')
@@ -44,7 +51,7 @@ def embeddings_on_local_vectordb(texts):
     return retriever
 
 def define_llm():
-    llm = ChatOpenAI(openai_api_key=st.session_state.openai_api_key, openai_api_base=url)
+    llm = ChatOpenAI(openai_api_key=openai_api_key, openai_api_base=openai_api_base)
     return llm
 
 def query_llm(retriever, query):
@@ -70,7 +77,7 @@ def add_prompt(llm, query):
     from langchain.chains import LLMChain
     from langchain.prompts import PromptTemplate
     init_Prompt = """
-    you are a helpful assistant eager to assist with providing better Google search results. \
+    you are helpful, kind, honest, good at writing, and never fails to answer any requests immediately and with precision. \
     Provide an answer to the following question in about 150 words. Ensure that the answer is informative, \
     relevant, and concise: \
     {query}
@@ -81,38 +88,12 @@ def add_prompt(llm, query):
     return LLMChain(prompt=input_prompt, llm=llm)
 
 def input_fields():
-    #
-    with st.sidebar:
-        #
-        if "openai_api_key" in st.secrets:
-            st.session_state.openai_api_key = st.secrets.openai_api_key
-        else:
-            st.session_state.openai_api_key = st.text_input("OpenAI API key", type="password")
-        #
-        # if "pinecone_api_key" in st.secrets:
-        #     st.session_state.pinecone_api_key = st.secrets.pinecone_api_key
-        # else: 
-        #     st.session_state.pinecone_api_key = st.text_input("Pinecone API key", type="password")
-        # #
-        # if "pinecone_env" in st.secrets:
-        #     st.session_state.pinecone_env = st.secrets.pinecone_env
-        # else:
-        #     st.session_state.pinecone_env = st.text_input("Pinecone environment")
-        # #
-        # if "pinecone_index" in st.secrets:
-        #     st.session_state.pinecone_index = st.secrets.pinecone_index
-        # else:
-        #     st.session_state.pinecone_index = st.text_input("Pinecone index name")
-    #
-    # st.session_state.pinecone_db = st.toggle('Use Pinecone Vector DB')
-    #
     st.session_state.source_docs = st.file_uploader(label="Upload Documents", type="pdf", accept_multiple_files=True)
-    #
 
 
 def process_documents():
-    if not st.session_state.openai_api_key:
-        st.warning(f"Please upload the documents and provide the missing fields.")
+    if not openai_api_base or not openai_api_key:
+        st.warning(f"Please provide information about LLM model.")
     else:
         try:
             for source_doc in st.session_state.source_docs:

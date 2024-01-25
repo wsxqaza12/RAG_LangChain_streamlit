@@ -1,9 +1,9 @@
 langchain
 streamlit
-# unstructured
-# unstructured[pdf]
+unstructured
+unstructured[pdf]
 # openai
-# chromadb
+chromadb
 # tiktoken
 sentence-transformers 
 langchain-community
